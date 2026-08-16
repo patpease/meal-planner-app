@@ -53,6 +53,14 @@ export default function RecipeDetail() {
       <div className="mt-3 flex items-start justify-between gap-2">
         <h1 className="text-2xl font-semibold text-sage-800">{recipe.name}</h1>
         <div className="flex shrink-0 gap-2">
+          {recipe.steps.length > 0 && (
+            <Link
+              to={`/recipes/${recipeId}/cook`}
+              className="rounded-lg bg-sage-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sage-700"
+            >
+              Start cooking
+            </Link>
+          )}
           <Link
             to={`/recipes/${recipeId}/edit`}
             className="rounded-lg border border-sage-300 px-3 py-1.5 text-sm font-medium text-sage-700 hover:bg-sage-50"

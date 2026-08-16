@@ -1,8 +1,9 @@
-import { HashRouter, Routes, Route, NavLink } from 'react-router-dom'
+import { HashRouter, Routes, Route, NavLink, useLocation } from 'react-router-dom'
 import Recipes from './pages/Recipes'
 import RecipeDetail from './pages/RecipeDetail'
 import RecipeForm from './pages/RecipeForm'
 import RecipeUrlImport from './pages/RecipeUrlImport'
+import CookingMode from './pages/CookingMode'
 import Pantry from './pages/Pantry'
 import PantryItemForm from './pages/PantryItemForm'
 import Planner from './pages/Planner'
@@ -25,43 +26,60 @@ function navLinkClass({ isActive }: { isActive: boolean }) {
   ].join(' ')
 }
 
+function AppShell() {
+  const location = useLocation()
+  const isCookingMode = /^\/recipes\/[^/]+\/cook$/.test(location.pathname)
+
+  if (isCookingMode) {
+    return (
+      <Routes>
+        <Route path="/recipes/:id/cook" element={<CookingMode />} />
+      </Routes>
+    )
+  }
+
+  return (
+    <div className="flex flex-1 flex-col md:flex-row bg-stone-50">
+      <nav className="hidden md:flex md:w-48 md:flex-col md:gap-1 md:p-4 md:border-r md:border-stone-200">
+        <span className="mb-4 text-lg font-semibold text-sage-800">Meal Planner</span>
+        {navItems.map((item) => (
+          <NavLink key={item.to} to={item.to} end={item.end} className={navLinkClass}>
+            {item.label}
+          </NavLink>
+        ))}
+      </nav>
+
+      <main className="flex-1 pb-16 md:pb-0">
+        <Routes>
+          <Route path="/" element={<Planner />} />
+          <Route path="/recipes" element={<Recipes />} />
+          <Route path="/recipes/new" element={<RecipeForm />} />
+          <Route path="/recipes/import-url" element={<RecipeUrlImport />} />
+          <Route path="/recipes/:id" element={<RecipeDetail />} />
+          <Route path="/recipes/:id/edit" element={<RecipeForm />} />
+          <Route path="/pantry" element={<Pantry />} />
+          <Route path="/pantry/new" element={<PantryItemForm />} />
+          <Route path="/pantry/:id/edit" element={<PantryItemForm />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/import" element={<Import />} />
+        </Routes>
+      </main>
+
+      <nav className="fixed bottom-0 left-0 right-0 flex gap-1 border-t border-stone-200 bg-white p-2 md:hidden">
+        {navItems.map((item) => (
+          <NavLink key={item.to} to={item.to} end={item.end} className={navLinkClass}>
+            {item.label}
+          </NavLink>
+        ))}
+      </nav>
+    </div>
+  )
+}
+
 function App() {
   return (
     <HashRouter>
-      <div className="flex flex-1 flex-col md:flex-row bg-stone-50">
-        <nav className="hidden md:flex md:w-48 md:flex-col md:gap-1 md:p-4 md:border-r md:border-stone-200">
-          <span className="mb-4 text-lg font-semibold text-sage-800">Meal Planner</span>
-          {navItems.map((item) => (
-            <NavLink key={item.to} to={item.to} end={item.end} className={navLinkClass}>
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-
-        <main className="flex-1 pb-16 md:pb-0">
-          <Routes>
-            <Route path="/" element={<Planner />} />
-            <Route path="/recipes" element={<Recipes />} />
-            <Route path="/recipes/new" element={<RecipeForm />} />
-            <Route path="/recipes/import-url" element={<RecipeUrlImport />} />
-            <Route path="/recipes/:id" element={<RecipeDetail />} />
-            <Route path="/recipes/:id/edit" element={<RecipeForm />} />
-            <Route path="/pantry" element={<Pantry />} />
-            <Route path="/pantry/new" element={<PantryItemForm />} />
-            <Route path="/pantry/:id/edit" element={<PantryItemForm />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/import" element={<Import />} />
-          </Routes>
-        </main>
-
-        <nav className="fixed bottom-0 left-0 right-0 flex gap-1 border-t border-stone-200 bg-white p-2 md:hidden">
-          {navItems.map((item) => (
-            <NavLink key={item.to} to={item.to} end={item.end} className={navLinkClass}>
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-      </div>
+      <AppShell />
     </HashRouter>
   )
 }
