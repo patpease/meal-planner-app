@@ -58,6 +58,7 @@ export interface PlannedMeal {
   recipeId: number
   servings: number
   repeated?: boolean
+  completed?: boolean
 }
 
 export interface ShoppingListItem {

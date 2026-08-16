@@ -112,6 +112,12 @@ export default function Planner() {
     await persist({ ...plan, shoppingList }, { shoppingList })
   }
 
+  async function handleToggleMealCompleted(index: number) {
+    if (!plan) return
+    const meals = plan.meals.map((m, i) => (i === index ? { ...m, completed: !m.completed } : m))
+    await persist({ ...plan, meals }, { meals })
+  }
+
   async function handleNotesChange(notes: string) {
     if (!plan) return
     await persist({ ...plan, notes }, { notes })
@@ -156,6 +162,7 @@ export default function Planner() {
       onSwapRecipe={handleSwapRecipe}
       onStoreChange={handleStoreChange}
       onToggleChecked={handleToggleChecked}
+      onToggleMealCompleted={handleToggleMealCompleted}
       onNotesChange={handleNotesChange}
       onSnacksChange={handleSnacksChange}
       onSave={handleSave}
@@ -261,6 +268,7 @@ function PlanView({
   onSwapRecipe,
   onStoreChange,
   onToggleChecked,
+  onToggleMealCompleted,
   onNotesChange,
   onSnacksChange,
   onSave,
@@ -274,6 +282,7 @@ function PlanView({
   onSwapRecipe: (index: number, recipeId: number) => void
   onStoreChange: (index: number, store: Store, itemName: string) => void
   onToggleChecked: (index: number) => void
+  onToggleMealCompleted: (index: number) => void
   onNotesChange: (notes: string) => void
   onSnacksChange: (snacksText: string) => void
   onSave: () => void
@@ -282,6 +291,7 @@ function PlanView({
   const isSaved = plan.id !== undefined
   const byType = (type: MealType) => plan.meals.map((m, i) => ({ ...m, index: i })).filter((m) => m.mealType === type)
   const storeGroups: Store[] = ['trader-joes', 'whole-foods']
+  const eatenCount = plan.meals.filter((m) => m.completed).length
 
   return (
     <div className="p-4 pb-24">
@@ -297,6 +307,13 @@ function PlanView({
           Plan a new week
         </button>
       </div>
+
+      {isSaved && plan.meals.length > 0 && (
+        <p className="mt-1 text-sm text-sage-500">
+          {eatenCount} of {plan.meals.length} meals eaten
+          {eatenCount < plan.meals.length ? ` · ${plan.meals.length - eatenCount} left this week` : ' · all done!'}
+        </p>
+      )}
 
       {autoNotes.length > 0 && (
         <div className="mt-3 space-y-1">
@@ -317,20 +334,40 @@ function PlanView({
               {MEAL_TYPE_LABEL_PLURAL[type]} ({meals.length})
             </h2>
             <div className="mt-2 space-y-2">
-              {meals.map(({ index, recipeId, servings, repeated }) => {
+              {meals.map(({ index, recipeId, servings, repeated, completed }) => {
                 const recipe = recipeById.get(recipeId)
                 const options = allRecipes.filter((r) => r.mealType === type)
                 return (
-                  <div key={index} className="rounded-xl border border-stone-200 bg-white p-3">
+                  <div
+                    key={index}
+                    className={`rounded-xl border p-3 ${completed ? 'border-stone-200 bg-stone-50' : 'border-stone-200 bg-white'}`}
+                  >
                     <div className="flex items-center justify-between gap-2">
-                      {recipe ? (
-                        <Link to={`/recipes/${recipe.id}`} className="font-medium text-sage-800 hover:underline">
-                          {recipe.name}
-                        </Link>
-                      ) : (
-                        <span className="text-sage-400">Recipe removed</span>
-                      )}
-                      {repeated && <span className="shrink-0 text-xs text-amber-600">repeat</span>}
+                      <div className="flex items-center gap-2 min-w-0">
+                        {isSaved && (
+                          <input
+                            type="checkbox"
+                            checked={!!completed}
+                            onChange={() => onToggleMealCompleted(index)}
+                            className="h-4 w-4 shrink-0 accent-sage-500"
+                            aria-label="Mark eaten"
+                          />
+                        )}
+                        {recipe ? (
+                          <Link
+                            to={`/recipes/${recipe.id}`}
+                            className={`truncate font-medium hover:underline ${completed ? 'text-sage-400 line-through' : 'text-sage-800'}`}
+                          >
+                            {recipe.name}
+                          </Link>
+                        ) : (
+                          <span className="text-sage-400">Recipe removed</span>
+                        )}
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        {completed && <span className="text-xs text-sage-500">eaten</span>}
+                        {repeated && <span className="text-xs text-amber-600">repeat</span>}
+                      </div>
                     </div>
                     {recipe && (
                       <p className="mt-0.5 text-xs text-sage-500">
