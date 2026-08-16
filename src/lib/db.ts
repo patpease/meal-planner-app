@@ -53,11 +53,38 @@ export interface UserSettings {
   storePreferences: Record<string, Store>
 }
 
+export interface PlannedMeal {
+  mealType: MealType
+  recipeId: number
+  servings: number
+  repeated?: boolean
+}
+
+export interface ShoppingListItem {
+  name: string
+  qty?: number
+  unit?: string
+  store: Store
+  restock?: boolean
+  checked?: boolean
+}
+
+export interface WeeklyPlan {
+  id: number
+  weekStart: string
+  meals: PlannedMeal[]
+  snacks: string[]
+  shoppingList: ShoppingListItem[]
+  notes: string
+  createdDate: string
+}
+
 const db = new Dexie('meal-planner') as Dexie & {
   recipes: EntityTable<Recipe, 'id'>
   pantryItems: EntityTable<PantryItem, 'id'>
   photos: EntityTable<Photo, 'id'>
   settings: EntityTable<UserSettings, 'id'>
+  weeklyPlans: EntityTable<WeeklyPlan, 'id'>
 }
 
 db.version(1).stores({
@@ -65,6 +92,10 @@ db.version(1).stores({
   pantryItems: '++id, &name, level',
   photos: '++id, recipeId',
   settings: '++id',
+})
+
+db.version(2).stores({
+  weeklyPlans: '++id, weekStart',
 })
 
 export default db

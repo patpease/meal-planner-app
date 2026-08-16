@@ -4,6 +4,7 @@ import db, {
   type PantryItem,
   type Photo,
   type UserSettings,
+  type WeeklyPlan,
 } from './db'
 import { guessPantryIcon } from './pantryIcons'
 
@@ -125,4 +126,50 @@ export async function bulkImportPantryItems(items: Omit<PantryItem, 'id'>[]) {
   for (const item of items) {
     await upsertPantryItem(item)
   }
+}
+
+const LEVEL_STEP_DOWN: Record<NonNullable<PantryItem['level']>, PantryItem['level']> = {
+  full: 'half',
+  half: 'low',
+  low: 'empty',
+  empty: 'empty',
+}
+
+/** Mirrors the skill's Step 7: steps a matched pantry item's stock down one notch after a plan uses it. */
+export async function applyPantryUsage(ingredientNames: string[]) {
+  const items = await db.pantryItems.toArray()
+  const today = new Date().toISOString().slice(0, 10)
+
+  for (const name of ingredientNames) {
+    const lower = name.toLowerCase()
+    const match = items.find((item) => lower.includes(item.name.toLowerCase()) || item.name.toLowerCase().includes(lower))
+    if (!match) continue
+
+    if (match.qty !== undefined) {
+      await db.pantryItems.update(match.id, { qty: Math.max(0, match.qty - 1), updatedDate: today })
+    } else {
+      const nextLevel = LEVEL_STEP_DOWN[match.level ?? 'full']
+      await db.pantryItems.update(match.id, { level: nextLevel, updatedDate: today })
+    }
+  }
+}
+
+export function listRecentPlans(limit: number) {
+  return db.weeklyPlans.orderBy('weekStart').reverse().limit(limit).toArray()
+}
+
+export function getLatestPlan() {
+  return db.weeklyPlans.orderBy('weekStart').reverse().first()
+}
+
+export function getPlan(id: number) {
+  return db.weeklyPlans.get(id)
+}
+
+export function addPlan(plan: Omit<WeeklyPlan, 'id'>) {
+  return db.weeklyPlans.add(plan as WeeklyPlan)
+}
+
+export function updatePlan(id: number, patch: Partial<Omit<WeeklyPlan, 'id'>>) {
+  return db.weeklyPlans.update(id, patch)
 }
