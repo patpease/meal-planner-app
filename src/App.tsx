@@ -1,5 +1,8 @@
 import { HashRouter, Routes, Route, NavLink } from 'react-router-dom'
 import Recipes from './pages/Recipes'
+import RecipeDetail from './pages/RecipeDetail'
+import RecipeForm from './pages/RecipeForm'
+import RecipeUrlImport from './pages/RecipeUrlImport'
 import Pantry from './pages/Pantry'
 import Planner from './pages/Planner'
 import Settings from './pages/Settings'
@@ -38,6 +41,10 @@ function App() {
           <Routes>
             <Route path="/" element={<Planner />} />
             <Route path="/recipes" element={<Recipes />} />
+            <Route path="/recipes/new" element={<RecipeForm />} />
+            <Route path="/recipes/import-url" element={<RecipeUrlImport />} />
+            <Route path="/recipes/:id" element={<RecipeDetail />} />
+            <Route path="/recipes/:id/edit" element={<RecipeForm />} />
             <Route path="/pantry" element={<Pantry />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/import" element={<Import />} />

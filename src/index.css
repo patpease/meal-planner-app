@@ -38,3 +38,9 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+@layer components {
+  .input {
+    @apply w-full rounded-lg border border-stone-300 px-3 py-2 text-sm;
+  }
+}

@@ -97,6 +97,16 @@ export function getPhoto(id: number) {
   return db.photos.get(id)
 }
 
+export async function removePhoto(photoId: number, recipeId: number) {
+  await db.photos.delete(photoId)
+  await db.recipes
+    .where('id')
+    .equals(recipeId)
+    .modify((recipe) => {
+      recipe.photoIds = recipe.photoIds.filter((id) => id !== photoId)
+    })
+}
+
 export async function bulkImportRecipes(recipes: Omit<Recipe, 'id'>[]) {
   return db.recipes.bulkAdd(recipes as Recipe[])
 }
