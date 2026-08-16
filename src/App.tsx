@@ -3,6 +3,7 @@ import Recipes from './pages/Recipes'
 import Pantry from './pages/Pantry'
 import Planner from './pages/Planner'
 import Settings from './pages/Settings'
+import Import from './pages/Import'
 
 const navItems = [
   { to: '/', label: 'Plan', end: true },
@@ -39,6 +40,7 @@ function App() {
             <Route path="/recipes" element={<Recipes />} />
             <Route path="/pantry" element={<Pantry />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/import" element={<Import />} />
           </Routes>
         </main>
 
