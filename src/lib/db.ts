@@ -36,6 +36,7 @@ export interface PantryItem {
   level?: PantryLevel
   qty?: number
   unit?: string
+  icon?: string
   updatedDate: string
 }
 

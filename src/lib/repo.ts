@@ -5,6 +5,7 @@ import db, {
   type Photo,
   type UserSettings,
 } from './db'
+import { guessPantryIcon } from './pantryIcons'
 
 const SETTINGS_ID = 1
 
@@ -69,13 +70,22 @@ export function listPantryItems() {
   return db.pantryItems.orderBy('name').toArray()
 }
 
+export function getPantryItem(id: number) {
+  return db.pantryItems.get(id)
+}
+
+export function updatePantryItem(id: number, patch: Partial<Omit<PantryItem, 'id'>>) {
+  return db.pantryItems.update(id, { ...patch, updatedDate: new Date().toISOString().slice(0, 10) })
+}
+
 export async function upsertPantryItem(item: Omit<PantryItem, 'id'>) {
+  const withIcon = { ...item, icon: item.icon ?? guessPantryIcon(item.name) }
   const existing = await db.pantryItems.where('name').equalsIgnoreCase(item.name).first()
   if (existing) {
-    await db.pantryItems.update(existing.id, { ...item })
+    await db.pantryItems.update(existing.id, withIcon)
     return existing.id
   }
-  return db.pantryItems.add(item as PantryItem)
+  return db.pantryItems.add(withIcon as PantryItem)
 }
 
 export function deletePantryItem(id: number) {

@@ -4,6 +4,7 @@ import RecipeDetail from './pages/RecipeDetail'
 import RecipeForm from './pages/RecipeForm'
 import RecipeUrlImport from './pages/RecipeUrlImport'
 import Pantry from './pages/Pantry'
+import PantryItemForm from './pages/PantryItemForm'
 import Planner from './pages/Planner'
 import Settings from './pages/Settings'
 import Import from './pages/Import'
@@ -46,6 +47,8 @@ function App() {
             <Route path="/recipes/:id" element={<RecipeDetail />} />
             <Route path="/recipes/:id/edit" element={<RecipeForm />} />
             <Route path="/pantry" element={<Pantry />} />
+            <Route path="/pantry/new" element={<PantryItemForm />} />
+            <Route path="/pantry/:id/edit" element={<PantryItemForm />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/import" element={<Import />} />
           </Routes>
