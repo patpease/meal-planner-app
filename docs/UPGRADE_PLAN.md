@@ -1,4 +1,4 @@
-# Meal Planner v2 — upgrade plan (draft for review)
+# Pease Meals (Meal Planner v2) — upgrade plan (draft for review)
 
 Status: **draft**. Open questions are marked **❓** with a recommended default;
 anything you don't answer, we build with the default.
@@ -143,19 +143,61 @@ details, light + dark tokens, short celebratory motion (none under Reduce Motion
 | **Prepped** | Frozen + prepped meals, **homemade or store-bought** (e.g. TJ's dumplings): portions left, date made/bought, use-by with "eat soon" warning; −1 portion when eaten (logs "had it"). Homemade items link back to their recipe; store-bought ones note the store. |
 | **Settings** | Connected phones, pairing code, download backup, eaters (switch Caroline on), defaults (servings, stores, weekly plan generation). |
 
-Name and icons: placeholders until you supply them (`public/icon*.png`,
-`manifest.webmanifest`, `apple-touch-icon.png`).
+### Name, icon and look
+
+**Name: Pease Meals.** Icon: "Peas in a Pod" — three smiling peas, two big and
+one small, for the three of us. Source assets and the designer's handover are
+in `design/pease-meals-icons/` (`HANDOVER.md`).
+
+**Installing the icon (Phase 1):**
+
+- Copy `design/pease-meals-icons/web/*` into `public/`, so it's served from `/`:
+  `favicon.ico`, `favicon.svg`, `favicon-16/32/48.png`, `apple-touch-icon.png`
+  (180 px, opaque — this is the one iPhones use on the home screen),
+  `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`.
+- `index.html` head: the handover's `<link rel="icon">` ×2,
+  `apple-touch-icon`, `manifest` and `theme-color` tags. Also
+  `apple-mobile-web-app-title` = "Pease Meals" so the home-screen label fits.
+- `public/manifest.webmanifest`: `name` "Pease Meals", `short_name`
+  "Pease Meals", `display: standalone`, the three `icons` entries,
+  `theme_color #6F8C6A`, `background_color #FBF7F2`.
+- **Skipped from the handover:** the Xcode/`AppIcon.appiconset` steps and the
+  `ios/` PNGs. Pease Meals is a home-screen web app, not a native iOS app, so
+  there's no Xcode project. The files stay in `design/` in case that ever changes.
+- Check: the favicon shows in a browser tab, and the icon looks right after
+  **Add to Home Screen** on an iPhone (it gets a fresh icon only on re-adding).
+
+**Colour tokens** (`src/styles.css` `:root`, from the icon palette):
+
+| Token | Light | Use |
+|---|---|---|
+| `--bg` | cream `#FBF7F2` | App background |
+| `--ink` | `#2F3B2D` | Text |
+| `--accent` | sage `#6F8C6A` | Buttons, active tab, theme colour |
+| `--accent-strong` | sage-dark `#5E7A5A` | Pressed states, links |
+| `--surface-soft` | sage-light `#DCE6D5` | Cards, chips |
+| `--pea` | `#9BBE8A` | Badges, "in pantry ✓", progress |
+| `--leaf` | `#8FA98A` | Secondary icons |
+| `--blush` | `#F4DCD4` | Highlight panels, "We had it!" celebration |
+| `--blush-deep` | `#E8A898` | "Eat soon" / low-stock warnings, accents |
+
+Dark mode: one `prefers-color-scheme: dark` block with deep sage/charcoal
+backgrounds, light sage text and the same pea/blush accents, checked at
+390 px in both modes.
+
+**Typeface: Nunito**, self-hosted with `@fontsource/nunito` like the library
+(the strict CSP allows fonts from our own origin only).
 
 ## 8. Build phases
 
-1. **Foundation** — Preact app, Cloudflare Pages + D1 + R2 + pairing + empty shell; deploy to
+1. **Foundation** — Preact app with the Pease Meals name, icon, palette and Nunito, Cloudflare Pages + D1 + R2 + pairing + empty shell; deploy to
    the new domain. You pair both phones.
 2. **Recipes** — schema, CRUD, photos, URL import, grid + detail, "We had it".
 3. **Live sync** — `changes` table + 15 s polling + foreground refresh.
 4. **Plan + shopping list** — port v1 planner logic to the server data.
 5. **Pantry + Prepped** — including "made extra → freezer" and portions.
 6. **Migration + backups** — v1 "send to new app" button (ships to v1 on GitHub Pages), `/api/export`, data repo Action, restore script.
-7. **Polish + cut-over** — dark mode pass at 390 px, your icons/name, retire GitHub Pages.
+7. **Polish + cut-over** — dark mode pass at 390 px, final icon check on both phones, retire GitHub Pages.
 
 Each phase is a PR you can review on its own.
 
@@ -163,6 +205,7 @@ Each phase is a PR you can review on its own.
 
 | Topic | Decision |
 |---|---|
+| Name & icon | **Pease Meals**, "Peas in a Pod" icon, sage/blush/cream palette, Nunito |
 | Front end | Rebuild in **Preact** (port v1 logic) |
 | Live sync | **~15 s polling** + refresh on reopen |
 | v1 data | **Migrate** it (one-time button in v1) |
@@ -180,5 +223,4 @@ Each phase is a PR you can review on its own.
 ## 10. Still to do before building
 
 - You create the private repo `patpease/meal-planner-data` (backups).
-- Name and icons: you supply them; placeholders until then.
 - Confirm the Cloudflare API token can be reused (or create one scoped to Pages, D1, R2 Edit + DNS for `peasestudio.com`).
