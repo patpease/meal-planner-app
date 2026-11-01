@@ -12,7 +12,7 @@ anything you don't answer, we build with the default.
 | Photos | Blobs in IndexedDB | Resized JPEGs on the server (see §4) |
 | Login | None | Device pairing (same as the library) |
 | Sync | None | Live updates between both phones (§6) |
-| Backups | None | Nightly to a private `meal-planner-data` repo |
+| Backups | None | Nightly to a private `pease-meals-data` repo |
 | UI | React 19 + Tailwind, sage theme | **Preact + Vite + plain CSS tokens**, same stack as the library |
 
 The UI is rebuilt in Preact to match the library's code. Framework-free
@@ -60,7 +60,7 @@ shopping_items id, plan_id, name, qty, unit, store, checked, restock
 pantry_items   id, name, category, location, level, qty, unit, icon, updated_at
 prepped_items  id, kind (homemade/store_bought), recipe_id NULL, name, portions,
                location (freezer/fridge), made_on, use_by, store, photo_key, notes
-eaters         id, name, emoji, active             -- seeded Mom, Dad, Caroline (inactive)
+eaters         id, name, emoji, active             -- seeded Laura, Patrick, Caroline (inactive)
 devices / pair_codes                                 -- copied from the library
 changes        id, table, row_id, at                 -- powers live sync (§6)
 ```
@@ -72,11 +72,23 @@ counts are computed, never stored; restore only runs on an empty database.
 
 | Repo | Purpose |
 |---|---|
-| `patpease/meal-planner-app` (this one) | App + API. v2 is built on a branch; `main` keeps v1 until cut-over. |
-| `patpease/meal-planner-data` (**new, private** — you create it) | Nightly backup: `meals.json` + `photos/`. Same Action as `carolines-library-data`. |
+| `patpease/pease-meals` (**new, private** — you create it) | Pease Meals app + API. Built fresh here (Preact rebuild), with v1 logic ported in. This plan and `design/pease-meals-icons/` move here in Phase 1. |
+| `patpease/pease-meals-data` (**new, private** — you create it) | Nightly backup: `meals.json` + `photos/`. Same Action as `carolines-library-data`. |
+| `patpease/meal-planner-app` (existing) | v1 stays live on GitHub Pages until cut-over. Gets one last change: the "send my data to Pease Meals" button. Archived after cut-over. |
 
-- **Deploy:** `npm run deploy` (wrangler), same as the library. The existing
-  GitHub Pages workflow is removed at cut-over.
+**Creating the repos — you need to do this; I can't.** This session isn't
+allowed to create GitHub repositories. Steps:
+
+1. On github.com: **New repository** → owner `patpease`, name `pease-meals`,
+   **Private**, no README/licence/.gitignore (empty, so the first push is clean).
+   Repeat for `pease-meals-data`.
+2. Give Claude access: **github.com/settings/installations** → **Claude** →
+   **Configure** → Repository access → add `pease-meals` and `pease-meals-data`
+   → **Save**. (If you use "All repositories", nothing to do.)
+3. Tell me, and I'll attach them to the session and push Phase 1.
+
+- **Deploy:** `npm run deploy` (wrangler), same as the library, from `pease-meals`.
+  v1's GitHub Pages workflow is turned off at cut-over.
 - **Secrets** (never in chat or commits): `CLOUDFLARE_API_TOKEN`,
   `CLOUDFLARE_ACCOUNT_ID` where deploys run; `SETUP_CODE` and `BACKUP_TOKEN` as
   Pages secrets; `BACKUP_TOKEN` again in the data repo's Actions secrets.
@@ -85,10 +97,10 @@ counts are computed, never stored; restore only runs on an empty database.
 
 ## 4. Storage
 
-- **Data:** D1, one database `meal-planner`.
+- **Data:** D1, one database `pease-meals`.
 - **Photos:** resized on the phone before upload (long edge ~1600 px, JPEG
   ~80%, typically 150–300 KB) plus a small thumbnail for the grid.
-  - **Decided: R2** bucket `meal-planner-photos` (10 GB free). Served from
+  - **Decided: R2** bucket `pease-meals-photos` (10 GB free). Served from
     our own origin via `functions/photos/[key].ts`, so the CSP stays
     `img-src 'self'`. The nightly backup copies new photos into the data repo.
   - URL imports download the recipe's image into R2 (no third-party image hosts).
@@ -205,6 +217,7 @@ Each phase is a PR you can review on its own.
 
 | Topic | Decision |
 |---|---|
+| Repos | New private `pease-meals` (app) + `pease-meals-data` (backups); `meal-planner-app` keeps v1 until cut-over |
 | Name & icon | **Pease Meals**, "Peas in a Pod" icon, sage/blush/cream palette, Nunito |
 | Front end | Rebuild in **Preact** (port v1 logic) |
 | Live sync | **~15 s polling** + refresh on reopen |
@@ -218,9 +231,9 @@ Each phase is a PR you can review on its own.
 | Weekly plan | **Keep** auto-generation (port v1 `planner.ts`, minus the pregnancy-safe rules) |
 | Prepped meals | Both **homemade** (optional recipe link) and **store-bought** |
 | Pantry amounts | Level (full/half/low/empty) **or** exact quantity, per item |
-| Eaters | **Mom, Dad, Caroline.** Caroline won't eat solid food for ~6 months (until about May 2027), so she's seeded as *inactive*: hidden from "who ate" pickers and from serving counts in plan generation until switched on in **Settings → Eaters**. |
+| Eaters | **Laura, Patrick, Caroline** (first names). Patrick and Laura are active. Caroline won't eat solid food for ~6 months (until about May 2027), so she's seeded as *inactive*: hidden from "who ate" pickers and from serving counts in plan generation until switched on in **Settings → Eaters**. |
 
 ## 10. Still to do before building
 
-- You create the private repo `patpease/meal-planner-data` (backups).
+- You create the private repos `patpease/pease-meals` and `patpease/pease-meals-data` and give the Claude GitHub App access (§3).
 - Confirm the Cloudflare API token can be reused (or create one scoped to Pages, D1, R2 Edit + DNS for `peasestudio.com`).
