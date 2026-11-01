@@ -204,7 +204,7 @@ backgrounds, light sage text and the same pea/blush accents, checked at
 
 1. **Foundation** — Preact app with the Pease Meals name, icon, palette and Nunito, Cloudflare Pages + D1 + R2 + pairing + empty shell; deploy to
    the new domain. You pair both phones.
-2. **Recipes** — schema, CRUD, photos, grid + detail, "We had it", **URL import** (server-side) and **photo import** (Claude vision + Live Text paste fallback).
+2. **Recipes** — schema, CRUD, photos, grid + detail, "We had it", **URL import** (server-side) and **photo import** (Claude Sonnet 5.5, a "try again with Opus" button, and a Live Text paste fallback). Starts with the guided Anthropic API setup.
 3. **Live sync** — `changes` table + 15 s polling + foreground refresh.
 4. **Plan + shopping list** — port v1 planner logic to the server data.
 5. **Pantry + Prepped** — including "made extra → freezer", portions, and **barcode scanning** (zxing-wasm + Open Food Facts).
@@ -224,6 +224,7 @@ receipt and expiry reading, social-video links and batch card import are backlog
 | Topic | Decision |
 |---|---|
 | Repos | New private `pease-meals` (app) + `pease-meals-data` (backups); `meal-planner-app` keeps v1 until cut-over |
+| Photo import AI | Anthropic API, **Claude Sonnet 5.5**; user-triggered **"Try again with Opus"** (Claude Opus 5.5) on failure or a poor result; monthly cap |
 | Name & icon | **Pease Meals**, "Peas in a Pod" icon, sage/blush/cream palette, Nunito |
 | Front end | Rebuild in **Preact** (port v1 logic) |
 | Live sync | **~15 s polling** + refresh on reopen |
@@ -243,3 +244,16 @@ receipt and expiry reading, social-video links and batch card import are backlog
 
 - You create the private repos `patpease/pease-meals` and `patpease/pease-meals-data` and give the Claude GitHub App access (§3).
 - Confirm the Cloudflare API token can be reused (or create one scoped to Pages, D1, R2 Edit + DNS for `peasestudio.com`).
+
+### Anthropic API setup (guided at the start of Phase 2)
+
+1. Go to **console.anthropic.com** and sign up. Use a Pease Meals or family
+   workspace; this is separate from a Claude.ai subscription.
+2. **Billing:** add a card and buy a small prepaid credit (e.g. $10). Turn
+   auto-reload off to start.
+3. **Limits:** set a monthly spend limit (e.g. $5) for the workspace.
+4. **API Keys → Create Key**, named `pease-meals`. Copy it once.
+5. Store it as a Pages secret yourself:
+   `npx wrangler pages secret put ANTHROPIC_API_KEY --project-name pease-meals`
+   (paste when prompted). **Never paste the key into chat or a commit.**
+6. Tell me it's done, and I'll run a test import.

@@ -10,7 +10,7 @@ open-source projects we can build on, licences checked on npm/PyPI
 |---|---|---|
 | **Scan a barcode → pantry / prepped** | Scan → look up on Open Food Facts → confirm → add. Our own `products` table remembers every barcode, including the ones we name by hand. | Scan-to-use (−1 when it's used up), reading expiry dates, receipt scanning, nutrition info, sending missing products back to Open Food Facts |
 | **Recipe from a URL** | Paste link → server fetches the page → schema.org recipe → editable form → save, with the photo copied into R2 | AI fallback for pages without recipe data, Instagram/TikTok/YouTube links, bulk import of old bookmarks |
-| **Recipe from a photo** | 1–5 photos of a cookbook page or card → Claude vision → ingredients and steps as fields → review → save. The original photos stay attached. Free fallback: iPhone Live Text → paste box → parser. | Batch import of a stack of family recipe cards, photo of pantry shelves → items, on-device OCR |
+| **Recipe from a photo** | 1–5 photos of a cookbook page or card → Claude vision (Sonnet 5.5, with a "try again with Opus" button) → ingredients and steps as fields → review → save. The original photos stay attached. Free fallback: iPhone Live Text → paste box → parser. | Batch import of a stack of family recipe cards, photo of pantry shelves → items, on-device OCR |
 
 All three end the same way: a **pre-filled form you check before saving**,
 built once and shared.
@@ -80,15 +80,15 @@ YouTube descriptions) and bulk import from a list of bookmarks.
 
 | Option | Licence / cost | Quality on cookbook pages | Verdict |
 |---|---|---|---|
-| **Claude vision (Anthropic API)** from a Pages Function, with structured outputs (a JSON schema for title, servings, times, ingredients[], steps[]) | Pay per use. Roughly **3¢ a photo** on Claude Opus 5.5 ($4 / $20 per million tokens in/out; a photo is ~1.6k tokens in and ~1k out) | Best. Handles two-column layouts, fractions, handwriting and multi-page recipes, and returns ready-made fields | **Recommended for v1** |
+| **Claude vision (Anthropic API)** from a Pages Function, with structured outputs (a JSON schema for title, servings, times, ingredients[], steps[]) | Pay per use. A photo is ~1.6k tokens in and ~1k out: **~1–1.5¢ on Sonnet 5.5** ($2 / $10 per million tokens), ~3¢ on Opus 5.5 ($4 / $20) | Best. Handles two-column layouts, fractions, handwriting and multi-page recipes, and returns ready-made fields | **Recommended for v1** |
 | Cloudflare Workers AI, `llama-3.2-11b-vision-instruct` | Cheap, runs inside Cloudflare, no extra account | Fair on clean print, weaker on handwriting and layouts, and the JSON is less reliable | Alternative if you'd rather not have an Anthropic account |
 | [`tesseract.js`](https://github.com/naptha/tesseract.js) 7.0 on the phone | Apache-2.0 (permissive, but not MIT). Free | Raw text only, poor on multi-column pages, about a 10 MB download. Fields still need parsing | Not recommended |
 | **iPhone Live Text** (press on the text in the photo → Copy) → paste box → `parse-ingredient` plus a step splitter | Free, built into iOS, no code to read the image | Good text, but you choose what to copy | **Include in v1 as the free fallback**. v1's `importParser.ts` already does most of this |
 
 **v1 flow:** **Add recipe → From photos** → take or choose 1–5 photos → the
 phone shrinks them (as for all uploads) → they're stored in R2 → the server
-sends them to Claude with the recipe schema → the review form fills in →
-save. The photos stay attached to the recipe.
+sends them to Claude Sonnet 5.5 with the recipe schema → the review form fills in
+(with **Try again with Opus** if it's wrong or failed) → save. The photos stay attached to the recipe.
 
 Cost guard: one call per import, and a monthly cap set in Settings. If the
 API is down or the cap is reached, the app falls back to the paste box.
@@ -109,12 +109,22 @@ the pantry or freezer → a list of items (the old meal-planner skill did this);
 - **Dependencies:** `zxing-wasm`, `parse-ingredient`, `linkedom`,
   `@anthropic-ai/sdk`, and possibly `recipe-scrapers-ts`.
 
-## Questions for you
+## Decisions
 
-1. **Photo import:** OK to set up an Anthropic API account and key (about 3¢ a
-   photo, with a monthly cap)? Or use Cloudflare's own vision model instead (cheaper, rougher)?
-2. **Model:** the default is Claude Opus 5.5 (best accuracy). Claude Haiku 5.5
-   costs about 1/40th as much but is less accurate on messy pages. Your call.
+- **Photo import uses the Anthropic API** (Pease Meals' own API key and billing).
+- **Model: Claude Sonnet 5.5** (`claude-sonnet-5-5`, $2 / $10 per million
+  tokens), about **1–1.5¢ a photo**.
+- **"Try again with Opus"**: the review form always has this button, and it's
+  shown prominently when the Sonnet attempt fails. "Fails" means an API
+  error, a refusal, JSON that doesn't match the schema, a result with no
+  ingredients or no steps, or simply that you don't like the result. It
+  re-runs the same stored photos on **Claude Opus 5.5** (`claude-opus-5-5`,
+  about 3¢). It's never automatic, so Opus is only used when you choose it.
+- The model IDs are server config, not code, so they can be changed without
+  touching the app. The monthly cap counts both models. The server records
+  which model produced each import (`recipes.import_model`), to see how often
+  Opus is needed.
+- Account setup is guided when we reach Phase 2 (steps in UPGRADE_PLAN §10).
 
 ## Sources
 
