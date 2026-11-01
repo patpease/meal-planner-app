@@ -47,7 +47,7 @@ src/                         the front end
 
 ```sql
 recipes        id, name, meal_type, description, prep_minutes, cook_minutes,
-               servings, source_url, notes, pregnancy_safe, created_at, updated_at
+               servings, source_url, notes, created_at, updated_at
 recipe_ingredients  id, recipe_id, position, name, qty, unit, note, store
 recipe_steps   id, recipe_id, position, text, timer_seconds
 recipe_photos  id, recipe_id, key, position          -- first = cover
@@ -58,9 +58,9 @@ plans          id, week_start, notes
 plan_meals     id, plan_id, day, meal_type, recipe_id, servings, done
 shopping_items id, plan_id, name, qty, unit, store, checked, restock
 pantry_items   id, name, category, location, level, qty, unit, icon, updated_at
-prepped_items  id, recipe_id NULL, name, portions, location (freezer/fridge),
-               made_on, use_by, photo_key, notes
-eaters         id, name, emoji                      -- seeded with the two of you
+prepped_items  id, kind (homemade/store_bought), recipe_id NULL, name, portions,
+               location (freezer/fridge), made_on, use_by, store, photo_key, notes
+eaters         id, name, emoji, active             -- seeded Mom, Dad, Caroline (inactive)
 devices / pair_codes                                 -- copied from the library
 changes        id, table, row_id, at                 -- powers live sync (§6)
 ```
@@ -140,8 +140,8 @@ details, light + dark tokens, short celebratory motion (none under Reduce Motion
 | **Add recipe** | From a URL (server import), by hand, or photo of a cookbook page (just stores the photo for v2; ❓ OCR later). Take/choose photos. |
 | **Plan** | This week by day; tap a slot to pick a recipe; mark done (logs a "had it"). Shared shopping list grouped by store, live-ticked. |
 | **Pantry** | Ingredients by location (pantry / fridge / freezer / spices), level or quantity, low/out list feeds the shopping list. |
-| **Prepped** | Frozen + prepped meals: portions left, date made, use-by with "eat soon" warning; −1 portion when eaten (logs "had it"); link back to the recipe. |
-| **Settings** | Connected phones, pairing code, download backup, defaults (servings, stores, pregnancy-safe filter). |
+| **Prepped** | Frozen + prepped meals, **homemade or store-bought** (e.g. TJ's dumplings): portions left, date made/bought, use-by with "eat soon" warning; −1 portion when eaten (logs "had it"). Homemade items link back to their recipe; store-bought ones note the store. |
+| **Settings** | Connected phones, pairing code, download backup, defaults (servings, stores, weekly plan generation). |
 
 Name and icons: placeholders until you supply them (`public/icon*.png`,
 `manifest.webmanifest`, `apple-touch-icon.png`).
@@ -159,21 +159,26 @@ Name and icons: placeholders until you supply them (`public/icon*.png`,
 
 Each phase is a PR you can review on its own.
 
-## 9. Decisions so far
+## 9. Decisions
 
-- Front end: rebuild in **Preact** (port v1 logic).
-- Live sync: **~15 s polling** + foreground refresh.
-- v1 data: **migrate** it.
-- Photos: **R2**.
+| Topic | Decision |
+|---|---|
+| Front end | Rebuild in **Preact** (port v1 logic) |
+| Live sync | **~15 s polling** + refresh on reopen |
+| v1 data | **Migrate** it (one-time button in v1) |
+| Photos | **R2** |
+| Address | `meals.peasestudio.com` |
+| Offline | **Read-only** offline (recipes, plan, cooking mode); edits need a connection |
+| "We had it" | Date + who + reaction (😍 😊 😐 🙅) |
+| Pregnancy-safe filter | **Removed** (v1's `pregnancySafe` field is dropped during migration) |
+| Stores | **Keep** Trader Joe's (primary) / Whole Foods (secondary) suggestions on ingredients and the shopping list |
+| Weekly plan | **Keep** auto-generation (port v1 `planner.ts`, minus the pregnancy-safe rules) |
+| Prepped meals | Both **homemade** (optional recipe link) and **store-bought** |
+| Pantry amounts | Level (full/half/low/empty) **or** exact quantity, per item |
+| Eaters | **Mom, Dad, Caroline.** Caroline won't eat solid food for ~6 months (until about May 2027), so she's seeded as *inactive*: hidden from "who ate" pickers and from serving counts in plan generation until switched on in **Settings → Eaters**. |
 
-## 10. Open questions
+## 10. Still to do before building
 
-| # | Question | Recommended default |
-|---|---|---|
-| Q2 | Address? | `meals.peasestudio.com` |
-| Q3 | Offline: read-only, or full offline editing with sync? | Read-only offline |
-| Q6 | "We had it" — who and a reaction (like the library), or just the date? | Date + who + reaction (😍 😊 😐 🙅) |
-| Q7 | Keep pregnancy-safe filter, TJ's / Whole Foods store split, and the auto-generated weekly plan? | Keep all three |
-| Q8 | Frozen meals: always tied to a recipe, or also store-bought items (e.g. TJ's dumplings)? | Both; recipe link optional |
-| Q9 | Pantry: level (full/half/low) or exact quantities? | Both, per item (as v1) |
-| Q10 | Eaters: just the two of you, or also kids/guests for "who ate"? | The two of you; editable list |
+- You create the private repo `patpease/meal-planner-data` (backups).
+- Name and icons: you supply them; placeholders until then.
+- Confirm the Cloudflare API token can be reused (or create one scoped to Pages, D1, R2 Edit + DNS for `peasestudio.com`).
