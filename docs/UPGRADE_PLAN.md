@@ -204,14 +204,20 @@ backgrounds, light sage text and the same pea/blush accents, checked at
 
 1. **Foundation** — Preact app with the Pease Meals name, icon, palette and Nunito, Cloudflare Pages + D1 + R2 + pairing + empty shell; deploy to
    the new domain. You pair both phones.
-2. **Recipes** — schema, CRUD, photos, URL import, grid + detail, "We had it".
+2. **Recipes** — schema, CRUD, photos, grid + detail, "We had it", **URL import** (server-side) and **photo import** (Claude vision + Live Text paste fallback).
 3. **Live sync** — `changes` table + 15 s polling + foreground refresh.
 4. **Plan + shopping list** — port v1 planner logic to the server data.
-5. **Pantry + Prepped** — including "made extra → freezer" and portions.
+5. **Pantry + Prepped** — including "made extra → freezer", portions, and **barcode scanning** (zxing-wasm + Open Food Facts).
 6. **Migration + backups** — v1 "send to new app" button (ships to v1 on GitHub Pages), `/api/export`, data repo Action, restore script.
 7. **Polish + cut-over** — dark mode pass at 390 px, final icon check on both phones, retire GitHub Pages.
 
 Each phase is a PR you can review on its own.
+
+## 8a. Automated data entry
+
+Researched in [`AUTOMATION_RESEARCH.md`](AUTOMATION_RESEARCH.md). v1 includes
+barcode → pantry/prepped, recipe from URL, and recipe from photos. Scan-to-use,
+receipt and expiry reading, social-video links and batch card import are backlog.
 
 ## 9. Decisions
 
