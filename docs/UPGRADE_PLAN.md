@@ -1,5 +1,7 @@
 # Pease Meals (Meal Planner v2) — upgrade plan (draft for review)
 
+> **Moved:** the live copy of this plan is now in `patpease/pease-meals` (`docs/UPGRADE_PLAN.md`).
+
 Status: **ready for review.** All questions are answered (see §9).
 
 ## 1. Where we are today
