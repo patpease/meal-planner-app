@@ -1,7 +1,6 @@
 # Pease Meals (Meal Planner v2) — upgrade plan (draft for review)
 
-Status: **draft**. Open questions are marked **❓** with a recommended default;
-anything you don't answer, we build with the default.
+Status: **ready for review.** All questions are answered (see §9).
 
 ## 1. Where we are today
 
@@ -72,20 +71,11 @@ counts are computed, never stored; restore only runs on an empty database.
 
 | Repo | Purpose |
 |---|---|
-| `patpease/pease-meals` (**new, private** — you create it) | Pease Meals app + API. Built fresh here (Preact rebuild), with v1 logic ported in. This plan and `design/pease-meals-icons/` move here in Phase 1. |
-| `patpease/pease-meals-data` (**new, private** — you create it) | Nightly backup: `meals.json` + `photos/`. Same Action as `carolines-library-data`. |
+| `patpease/pease-meals` (**created** ✅) | Pease Meals app + API. Built fresh here (Preact rebuild), with v1 logic ported in. This plan and `design/pease-meals-icons/` move here in Phase 1. |
+| `patpease/pease-meals-data` (**created** ✅) | Nightly backup: `meals.json` + `photos/`. Same Action as `carolines-library-data`. |
 | `patpease/meal-planner-app` (existing) | v1 stays live on GitHub Pages until cut-over. Gets one last change: the "send my data to Pease Meals" button. Archived after cut-over. |
 
-**Creating the repos — you need to do this; I can't.** This session isn't
-allowed to create GitHub repositories. Steps:
-
-1. On github.com: **New repository** → owner `patpease`, name `pease-meals`,
-   **Private**, no README/licence/.gitignore (empty, so the first push is clean).
-   Repeat for `pease-meals-data`.
-2. Give Claude access: **github.com/settings/installations** → **Claude** →
-   **Configure** → Repository access → add `pease-meals` and `pease-meals-data`
-   → **Save**. (If you use "All repositories", nothing to do.)
-3. Tell me, and I'll attach them to the session and push Phase 1.
+Both new repos exist, are empty, and Claude has read and push access (checked 2026-11-01).
 
 - **Deploy:** `npm run deploy` (wrangler), same as the library, from `pease-meals`.
   v1's GitHub Pages workflow is turned off at cut-over.
@@ -136,7 +126,7 @@ No passwords, no Cloudflare Access (its redirect breaks out of the home-screen a
   ticks and pantry +/- are single-field updates, so two people editing
   at once doesn't clobber other fields.
 - **Offline:** read-only offline (last-loaded recipes + plan cached so
-  cooking mode works with a bad signal). Edits need a connection. ❓ Q3.
+  cooking mode works with a bad signal). Edits need a connection.
 
 ## 7. Front end
 
@@ -149,9 +139,9 @@ details, light + dark tokens, short celebratory motion (none under Reduce Motion
 |---|---|
 | **Recipes** | Photo grid (☰ list toggle). Badge: times we've had it. Filter by meal type/tag, sort by most/least/longest-ago had, search. |
 | **Recipe detail** | Photo carousel, ingredients (with "in pantry ✓" hints), steps, notes, history of when we had it. Buttons: **We had it! ✨** (date, who, reaction), **Cook** (cooking mode), **Add to plan**, **Made extra → freezer**. |
-| **Add recipe** | From a URL (server import), by hand, or photo of a cookbook page (just stores the photo for v2; ❓ OCR later). Take/choose photos. |
+| **Add recipe** | From a URL (server import), from 1–5 photos (Claude reads them into fields; **Try again with Opus** if it's wrong), by pasting text (iPhone Live Text), or by hand. Always ends on a review form. |
 | **Plan** | This week by day; tap a slot to pick a recipe; mark done (logs a "had it"). Shared shopping list grouped by store, live-ticked. |
-| **Pantry** | Ingredients by location (pantry / fridge / freezer / spices), level or quantity, low/out list feeds the shopping list. |
+| **Pantry** | **Scan a barcode** to add (Open Food Facts lookup). Ingredients by location (pantry / fridge / freezer / spices), level or quantity, low/out list feeds the shopping list. |
 | **Prepped** | Frozen + prepped meals, **homemade or store-bought** (e.g. TJ's dumplings): portions left, date made/bought, use-by with "eat soon" warning; −1 portion when eaten (logs "had it"). Homemade items link back to their recipe; store-bought ones note the store. |
 | **Settings** | Connected phones, pairing code, download backup, eaters (switch Caroline on), defaults (servings, stores, weekly plan generation). |
 
