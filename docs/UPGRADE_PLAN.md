@@ -242,7 +242,7 @@ receipt and expiry reading, social-video links and batch card import are backlog
 
 ## 10. Still to do before building
 
-- You create the private repos `patpease/pease-meals` and `patpease/pease-meals-data` and give the Claude GitHub App access (§3).
+- ✅ Repos `pease-meals` and `pease-meals-data` created; access verified (read + push) on 2026-11-01.
 - Confirm the Cloudflare API token can be reused (or create one scoped to Pages, D1, R2 Edit + DNS for `peasestudio.com`).
 
 ### Anthropic API setup (guided at the start of Phase 2)
