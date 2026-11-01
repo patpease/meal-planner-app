@@ -141,7 +141,7 @@ details, light + dark tokens, short celebratory motion (none under Reduce Motion
 | **Plan** | This week by day; tap a slot to pick a recipe; mark done (logs a "had it"). Shared shopping list grouped by store, live-ticked. |
 | **Pantry** | Ingredients by location (pantry / fridge / freezer / spices), level or quantity, low/out list feeds the shopping list. |
 | **Prepped** | Frozen + prepped meals, **homemade or store-bought** (e.g. TJ's dumplings): portions left, date made/bought, use-by with "eat soon" warning; −1 portion when eaten (logs "had it"). Homemade items link back to their recipe; store-bought ones note the store. |
-| **Settings** | Connected phones, pairing code, download backup, defaults (servings, stores, weekly plan generation). |
+| **Settings** | Connected phones, pairing code, download backup, eaters (switch Caroline on), defaults (servings, stores, weekly plan generation). |
 
 Name and icons: placeholders until you supply them (`public/icon*.png`,
 `manifest.webmanifest`, `apple-touch-icon.png`).
