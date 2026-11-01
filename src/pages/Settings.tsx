@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Link } from 'react-router-dom'
 import { readSettings, updateSettings } from '../lib/repo'
+import SendToPease from '../components/SendToPease'
 
 export default function Settings() {
   const settings = useLiveQuery(readSettings, [], undefined)
@@ -12,6 +13,8 @@ export default function Settings() {
       <h1 className="text-2xl font-semibold text-sage-800">Settings</h1>
 
       <div className="mt-4 max-w-md space-y-6">
+        <SendToPease />
+
         <label className="flex items-center justify-between rounded-xl border border-stone-200 bg-white p-4">
           <span>
             <span className="block font-medium text-sage-800">Pregnancy/breastfeeding-safe mode</span>
