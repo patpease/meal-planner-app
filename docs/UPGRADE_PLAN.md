@@ -13,11 +13,12 @@ anything you don't answer, we build with the default.
 | Login | None | Device pairing (same as the library) |
 | Sync | None | Live updates between both phones (§6) |
 | Backups | None | Nightly to a private `meal-planner-data` repo |
-| UI | React 19 + Tailwind, sage theme | Library-style: photo grid, detail sheets, light + dark tokens |
+| UI | React 19 + Tailwind, sage theme | **Preact + Vite + plain CSS tokens**, same stack as the library |
 
-What we keep from v1 (it works and is ~3k lines): recipe form, URL import
-(JSON-LD parsing), text import, cooking mode (wake lock + step timers), the
-weekly planner + shopping list logic, pantry icons.
+The UI is rebuilt in Preact to match the library's code. Framework-free
+logic from v1 is ported, not rewritten: JSON-LD recipe parsing, text import,
+planner + shopping-list logic, duration parsing, wake lock, step timers,
+pantry icons.
 
 ## 2. Backend architecture
 
@@ -87,13 +88,11 @@ counts are computed, never stored; restore only runs on an empty database.
 - **Data:** D1, one database `meal-planner`.
 - **Photos:** resized on the phone before upload (long edge ~1600 px, JPEG
   ~80%, typically 150–300 KB) plus a small thumbnail for the grid.
-  - **Recommended: R2** (Cloudflare object storage, 10 GB free). Recipes get
-    several photos and cooking photos are bigger than book covers; D1 has a
-    2 MB row limit and a 5 GB/database cap on the paid tier (500 MB free).
-  - Alternative: keep them in D1 like the library (one place, simpler
-    backups) — fine up to a few hundred recipes.
-  - ❓ **Q4** below.
-- **Migrating v1 data:** a one-time "Send my v1 data to the new app" button
+  - **Decided: R2** bucket `meal-planner-photos` (10 GB free). Served from
+    our own origin via `functions/photos/[key].ts`, so the CSP stays
+    `img-src 'self'`. The nightly backup copies new photos into the data repo.
+  - URL imports download the recipe's image into R2 (no third-party image hosts).
+- **Migrating v1 data (decided: yes):** a one-time "Send my v1 data to the new app" button
   in v1 Settings that uploads recipes, photos, pantry and plans from that
   phone's IndexedDB. Restore-style: only into an empty server, run once.
 
@@ -111,16 +110,16 @@ No passwords, no Cloudflare Access (its redirect breaks out of the home-screen a
 
 ## 6. Live updates between the two phones
 
-- **Recommended: Durable Object + WebSocket.** One small Durable Object
-  ("the kitchen") holds both phones' sockets. Every write through the API
-  pings it; it tells the other phone "recipes changed" and that phone refetches.
-  Changes show up in about a second (e.g. one of you ticks off the shopping
-  list in the store while the other watches). Durable Objects are on the
-  free plan with SQLite storage. Note: a Durable Object needs a small Worker
-  next to the Pages project.
-- **Fallback (always on):** refetch when the app comes back to the foreground
-  (what the library does) and every ~15 s while open, so nothing is lost if
-  the socket drops (iOS kills it in the background).
+**Decided: polling.** No extra Worker.
+
+- While the app is open, every ~15 s it calls `GET /api/changes?since=<n>`
+  (a tiny query on the `changes` table). If anything changed, it refetches
+  only the affected lists.
+- It also checks immediately when the app comes back to the foreground
+  (as the library does) and right after your own writes.
+- Polling pauses while the app is hidden, so it costs nothing in the background.
+- Upgrade path if 15 s ever feels slow: a Durable Object + WebSocket can be
+  added later without changing the data model.
 - **Conflicts:** last write wins per field, scoped to the row. Shopping-list
   ticks and pantry +/- are single-field updates, so two people editing
   at once doesn't clobber other fields.
@@ -149,26 +148,30 @@ Name and icons: placeholders until you supply them (`public/icon*.png`,
 
 ## 8. Build phases
 
-1. **Foundation** — Cloudflare Pages + D1 + pairing + empty shell; deploy to
+1. **Foundation** — Preact app, Cloudflare Pages + D1 + R2 + pairing + empty shell; deploy to
    the new domain. You pair both phones.
 2. **Recipes** — schema, CRUD, photos, URL import, grid + detail, "We had it".
-3. **Live sync** — Durable Object + foreground/poll fallback.
+3. **Live sync** — `changes` table + 15 s polling + foreground refresh.
 4. **Plan + shopping list** — port v1 planner logic to the server data.
 5. **Pantry + Prepped** — including "made extra → freezer" and portions.
-6. **Migration + backups** — v1 data import, `/api/export`, data repo Action, restore script.
+6. **Migration + backups** — v1 "send to new app" button (ships to v1 on GitHub Pages), `/api/export`, data repo Action, restore script.
 7. **Polish + cut-over** — dark mode pass at 390 px, your icons/name, retire GitHub Pages.
 
 Each phase is a PR you can review on its own.
 
-## 9. Open questions
+## 9. Decisions so far
+
+- Front end: rebuild in **Preact** (port v1 logic).
+- Live sync: **~15 s polling** + foreground refresh.
+- v1 data: **migrate** it.
+- Photos: **R2**.
+
+## 10. Open questions
 
 | # | Question | Recommended default |
 |---|---|---|
-| Q1 | Front-end framework: keep React + Tailwind (reuse v1 code) or move to Preact like the library? | Keep React + Tailwind, restyled with library-style tokens |
 | Q2 | Address? | `meals.peasestudio.com` |
 | Q3 | Offline: read-only, or full offline editing with sync? | Read-only offline |
-| Q4 | Photos in R2 or D1? | R2 |
-| Q5 | Is there real data in v1 on either phone to carry over? | Yes — build the one-time migration |
 | Q6 | "We had it" — who and a reaction (like the library), or just the date? | Date + who + reaction (😍 😊 😐 🙅) |
 | Q7 | Keep pregnancy-safe filter, TJ's / Whole Foods store split, and the auto-generated weekly plan? | Keep all three |
 | Q8 | Frozen meals: always tied to a recipe, or also store-bought items (e.g. TJ's dumplings)? | Both; recipe link optional |
